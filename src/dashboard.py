@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 # from data_ingestion import load_sensor_data
+from sklearn.linear_model import LinearRegression
 from ai_engine import train_model, predict_energy
 
 # st.title("GenAI Cement - Operator Dashboard")
@@ -141,6 +142,28 @@ with c2:
     st.markdown("#### Quick Controls")
     st.write("Auto-mode threshold: Confidence ≥ 85%")
     st.write("Safety limits: Active ✅")
+
+# Train model on demo dataset
+def train_model(data):
+    X = data[['raw_material_variability', 'grinding_efficiency']]
+    y = data['energy_consumption']
+    model = LinearRegression()
+    model.fit(X, y)
+    return model
+# Simple wrapper for prediction → returns readable recommendation
+def predict_action(model, latest_input):
+    try:
+        pred = model.predict(latest_input)[0]
+    except Exception:
+        return "⚠️ Prediction failed — using fallback suggestion."
+
+    # Demo recommendation logic
+    if pred > 10:
+        return f"Reduce mill separator speed by 3% (Predicted Energy: {pred:.2f} kWh/t)"
+    elif pred > 9:
+        return f"Optimize grinding load distribution (Predicted Energy: {pred:.2f} kWh/t)"
+    else:
+        return f"Maintain current settings (Predicted Energy: {pred:.2f} kWh/t)"
 
 # # Train model
 # model = train_model(df)
