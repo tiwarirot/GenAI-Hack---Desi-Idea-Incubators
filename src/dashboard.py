@@ -6,7 +6,11 @@ from ai_engine import train_model, predict_energy
 st.title("GenAI Cement - Operator Dashboard")
 
 # Load data
-df = load_sensor_data()
+df = pd.DataFrame({
+    "Process": ["Grinding", "Clinkerization", "Fuel Use", "Utilities"],
+    "Energy_Consumption": [120, 300, 180, 90],
+    "Carbon_Emissions": [12, 35, 18, 8]
+})
 st.line_chart(df[['energy_consumption']])
 
 # Train model
