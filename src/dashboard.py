@@ -165,6 +165,8 @@ def predict_action(model, latest_input):
     else:
         return f"Maintain current settings (Predicted Energy: {pred:.2f} kWh/t)"
 
+pred = predict_action(model, latest)
+
 # # Train model
 # model = train_model(df)
 
