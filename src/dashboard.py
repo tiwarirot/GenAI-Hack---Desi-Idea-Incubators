@@ -1,11 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-# from data_ingestion import load_sensor_data
-from sklearn.linear_model import LinearRegression
-from ai_engine import train_model, predict_energy
+from ai_engine import train_model, predict_action
 
-# st.title("GenAI Cement - Operator Dashboard")
 st.set_page_config(page_title="GenAI Cement - Operator Dashboard", layout="wide")
 
 # Sidebar navigation
@@ -31,16 +28,6 @@ st.sidebar.radio(
 st.title("GenAI Cement — Operator Dashboard")
 st.caption("Plant: Enclave–1")
 
-# Load data
-# df = pd.DataFrame({
-#     "Process": ["Grinding", "Clinkerization", "Fuel Use", "Utilities"],
-#     "energy_consumption": [120, 300, 180, 90],
-#     "Carbon_Emissions": [12, 35, 18, 8],
-#     # Add columns for AI model to avoid KeyError
-#     "raw_material_variability": [0.2, 0.3, 0.1, 0.25],
-#     "grinding_efficiency": [0.85, 0.9, 0.8, 0.88]
-# })
-# st.line_chart(df[['energy_consumption']])
 # -------------------------------------------------------------------
 # Demo Dataset
 # -------------------------------------------------------------------
@@ -142,38 +129,3 @@ with c2:
     st.markdown("#### Quick Controls")
     st.write("Auto-mode threshold: Confidence ≥ 85%")
     st.write("Safety limits: Active ✅")
-
-# Train model on demo dataset
-def train_model(data):
-    X = data[['raw_material_variability', 'grinding_efficiency']]
-    y = data['energy_consumption']
-    model = LinearRegression()
-    model.fit(X, y)
-    return model
-# Simple wrapper for prediction → returns readable recommendation
-def predict_action(model, latest_input):
-    try:
-        pred = model.predict(latest_input)[0]
-    except Exception:
-        return "⚠️ Prediction failed — using fallback suggestion."
-
-    # Demo recommendation logic
-    if pred > 10:
-        return f"Reduce mill separator speed by 3% (Predicted Energy: {pred:.2f} kWh/t)"
-    elif pred > 9:
-        return f"Optimize grinding load distribution (Predicted Energy: {pred:.2f} kWh/t)"
-    else:
-        return f"Maintain current settings (Predicted Energy: {pred:.2f} kWh/t)"
-
-pred = predict_action(model, latest)
-
-# # Train model
-# model = train_model(df)
-
-# # User input
-# st.subheader("Predict Energy Consumption")
-# variability = st.slider("Raw Material Variability", 0.05, 0.2, 0.12)
-# efficiency = st.slider("Grinding Efficiency", 0.75, 0.95, 0.85)
-
-# pred = predict_energy(model, variability, efficiency)
-# st.write(f"🔮 Predicted Energy Consumption: {pred:.2f} units")
