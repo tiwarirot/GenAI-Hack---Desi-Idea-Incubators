@@ -1,4 +1,4 @@
-import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 
 def train_model(data):
@@ -8,11 +8,13 @@ def train_model(data):
     model.fit(X, y)
     return model
 
-def predict_energy(model, variability, efficiency):
-    return model.predict([[variability, efficiency]])[0]
+def predict_action(model, latest_input):
+    pred = model.predict(latest_input)[0]
 
-if __name__ == "__main__":
-    from data_ingestion import load_sensor_data
-    df = load_sensor_data()
-    model = train_model(df)
-    print("Predicted energy:", predict_energy(model, 0.14, 0.84))
+    # Demo recommendation logic
+    if pred > 10:
+        return f"Reduce mill separator speed by 3% (Predicted Energy: {pred:.2f} kWh/t)"
+    elif pred > 9:
+        return f"Optimize grinding load distribution (Predicted Energy: {pred:.2f} kWh/t)"
+    else:
+        return f"Maintain current settings (Predicted Energy: {pred:.2f} kWh/t)"
