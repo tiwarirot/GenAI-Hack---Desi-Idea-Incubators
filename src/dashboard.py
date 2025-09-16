@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from data_ingestion import load_sensor_data
+# from data_ingestion import load_sensor_data
 from ai_engine import train_model, predict_energy
 
 st.title("GenAI Cement - Operator Dashboard")
