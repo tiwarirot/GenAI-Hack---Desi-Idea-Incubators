@@ -18,6 +18,8 @@ st.markdown("""
     h1, h2, h3, h4 {
         font-family: 'Inter', sans-serif;
     }
+
+    /* KPI Cards */
     .metric-card {
         background-color: white;
         padding: 20px;
@@ -35,6 +37,7 @@ st.markdown("""
     .kpi-value {
         font-size: 24px;
         font-weight: bold;
+        color: #004080;
     }
     .kpi-label {
         font-size: 14px;
@@ -46,6 +49,27 @@ st.markdown("""
         border-radius: 16px;
         font-size: 14px;
         display: inline-block;
+    }
+
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background-color: #004080;  /* Dark Blue */
+    }
+    section[data-testid="stSidebar"] .css-1d391kg, 
+    section[data-testid="stSidebar"] .css-1v0mbdj, 
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] span {
+        color: white !important;
+    }
+
+    /* Header title styling */
+    .dashboard-title {
+        background: linear-gradient(90deg, #004080, #0073e6);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 26px;
+        font-weight: bold;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -74,7 +98,7 @@ st.sidebar.radio(
 # --------------------------
 # Title
 # --------------------------
-st.markdown("<h1>GenAI Cement — Operator Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<div class='dashboard-title'>GenAI Cement — Operator Dashboard</div>", unsafe_allow_html=True)
 st.caption("Plant: Enclave–1")
 
 # --------------------------
