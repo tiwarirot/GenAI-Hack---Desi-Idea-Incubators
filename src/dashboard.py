@@ -54,7 +54,7 @@ st.markdown("""
 # Sidebar navigation
 # --------------------------
 st.sidebar.title("GenAI Cement")
-st.sidebar.markdown("### Navigation")
+# st.sidebar.markdown("### Navigation")
 st.sidebar.radio(
     "Menu",
     [
