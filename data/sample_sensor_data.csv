@@ -1,0 +1,4 @@
+timestamp,raw_material_variability,grinding_efficiency,energy_consumption
+2025-09-01 00:00:00,0.12,0.85,120
+2025-09-01 00:05:00,0.15,0.82,125
+2025-09-01 00:10:00,0.10,0.88,115
