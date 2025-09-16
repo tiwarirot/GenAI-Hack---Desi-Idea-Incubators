@@ -11,7 +11,7 @@ df = pd.DataFrame({
     "Energy_Consumption": [120, 300, 180, 90],
     "Carbon_Emissions": [12, 35, 18, 8]
 })
-st.line_chart(df[['energy_consumption']])
+st.line_chart(df[['Energy_Consumption']])
 
 # Train model
 model = train_model(df)
