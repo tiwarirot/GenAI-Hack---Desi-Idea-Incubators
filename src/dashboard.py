@@ -8,13 +8,13 @@ st.title("GenAI Cement - Operator Dashboard")
 # Load data
 df = pd.DataFrame({
     "Process": ["Grinding", "Clinkerization", "Fuel Use", "Utilities"],
-    "Energy_Consumption": [120, 300, 180, 90],
+    "energy_consumption": [120, 300, 180, 90],
     "Carbon_Emissions": [12, 35, 18, 8],
     # Add columns for AI model to avoid KeyError
     "raw_material_variability": [0.2, 0.3, 0.1, 0.25],
     "grinding_efficiency": [0.85, 0.9, 0.8, 0.88]
 })
-st.line_chart(df[['Energy_Consumption']])
+st.line_chart(df[['energy_consumption']])
 
 # Train model
 model = train_model(df)
