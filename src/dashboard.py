@@ -166,22 +166,46 @@ st.success("💡 Scenario Simulator: Adjust wet feed spike + optimize RDF fuel m
 # --------------------------
 # Predicted Impact Section
 # --------------------------
-st.subheader("📊 Predicted Impact of AI Optimization")
+st.subheader("🌍 Predicted Impact from AI Optimization")
 
-imp1, imp2 = st.columns(2)
-with imp1:
-    st.markdown("<div class='impact-card'><b>Energy Reduction</b><br><span class='impact-value'>8–12%</span></div>", unsafe_allow_html=True)
-    st.progress(0.12)  
+impact_col1, impact_col2, impact_col3, impact_col4 = st.columns(4)
 
-    st.markdown("<div class='impact-card'><b>CO₂ Footprint Reduction</b><br><span class='impact-value'>10–15%</span></div>", unsafe_allow_html=True)
-    st.progress(0.15)  
+with impact_col1:
+    st.markdown("""
+        <div class='metric-card'>
+            <div class='kpi-value'>10%</div>
+            <div class='kpi-label'>Energy Reduction</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.progress(10)
 
-with imp2:
-    st.markdown("<div class='impact-card'><b>Alternative Fuel Usage</b><br><span class='impact-value'>+20%</span></div>", unsafe_allow_html=True)
-    st.progress(0.20)  
+with impact_col2:
+    st.markdown("""
+        <div class='metric-card'>
+            <div class='kpi-value'>12%</div>
+            <div class='kpi-label'>CO₂ Footprint Reduction</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.progress(12)
 
-    st.markdown("<div class='impact-card'><b>Production Stability</b><br><span class='impact-value'>5–7%</span></div>", unsafe_allow_html=True)
-    st.progress(0.07)  
+with impact_col3:
+    st.markdown("""
+        <div class='metric-card'>
+            <div class='kpi-value'>20%</div>
+            <div class='kpi-label'>Higher Alt. Fuel Usage</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.progress(20)
+
+with impact_col4:
+    st.markdown("""
+        <div class='metric-card'>
+            <div class='kpi-value'>6%</div>
+            <div class='kpi-label'>Production Stability</div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.progress(6)
+  
 
 # --------------------------
 # Alerts & Controls
