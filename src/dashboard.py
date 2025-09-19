@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from ai_engine import train_model, predict_action
+from data_ingestion import load_sensor_data
+from ai_engine import train_model, predict_action, predict_energy
 
 st.set_page_config(page_title="GenAI Cement - Operator Dashboard", layout="wide")
 
@@ -47,6 +48,18 @@ st.markdown("""
         font-size: 14px;
         display: inline-block;
     }
+    div[data-testid="stSidebar"] {
+        background-color: #003366;
+    }
+    div[data-testid="stSidebar"] h1, 
+    div[data-testid="stSidebar"] h2, 
+    div[data-testid="stSidebar"] h3, 
+    div[data-testid="stSidebar"] h4, 
+    div[data-testid="stSidebar"] p, 
+    div[data-testid="stSidebar"] span, 
+    div[data-testid="stSidebar"] label {
+        color: white !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -54,7 +67,6 @@ st.markdown("""
 # Sidebar navigation
 # --------------------------
 st.sidebar.title("GenAI Cement")
-# st.sidebar.markdown("### Navigation")
 st.sidebar.radio(
     "Menu",
     [
@@ -78,14 +90,18 @@ st.markdown("<h1>GenAI Cement — Operator Dashboard</h1>", unsafe_allow_html=Tr
 st.caption("Plant: Enclave–1")
 
 # --------------------------
-# Demo Dataset
+# Data (using ingestion function)
 # --------------------------
-np.random.seed(42)
-df = pd.DataFrame({
-    "raw_material_variability": np.random.normal(0.2, 0.05, 50),
-    "grinding_efficiency": np.random.normal(0.8, 0.1, 50),
-    "energy_consumption": np.random.normal(9.6, 0.4, 50)
-})
+try:
+    df = load_sensor_data()
+except Exception:
+    # fallback demo dataset
+    np.random.seed(42)
+    df = pd.DataFrame({
+        "raw_material_variability": np.random.normal(0.2, 0.05, 50),
+        "grinding_efficiency": np.random.normal(0.8, 0.1, 50),
+        "energy_consumption": np.random.normal(9.6, 0.4, 50)
+    })
 
 # --------------------------
 # KPIs
@@ -99,8 +115,6 @@ with k3:
     st.markdown("<div class='metric-card'><div class='kpi-value'>2 / month</div><div class='kpi-label'>Off-spec Events</div></div>", unsafe_allow_html=True)
 with k4:
     st.markdown("<div class='metric-card'><div class='kpi-value'>0.82 t/ton</div><div class='kpi-label'>CO₂ Emissions (Scope 1)</div></div>", unsafe_allow_html=True)
-
-st.markdown("")
 
 # --------------------------
 # Plant Overview
@@ -149,3 +163,13 @@ with c1:
     st.markdown("<div class='section-card'><h4>Audit Timeline</h4><p>10:04 — Simulated scenario<br>10:12 — Operator input<br>10:18 — Change applied</p></div>", unsafe_allow_html=True)
 with c2:
     st.markdown("<div class='section-card'><h4>Quick Controls</h4><p>Auto-mode threshold: Confidence ≥ 85%<br>Safety limits: Active ✅</p></div>", unsafe_allow_html=True)
+
+# --------------------------
+# Predictive Slider Demo (from your first prototype)
+# --------------------------
+st.subheader("🔮 Predict Energy Consumption")
+variability = st.slider("Raw Material Variability", 0.05, 0.2, 0.12)
+efficiency = st.slider("Grinding Efficiency", 0.75, 0.95, 0.85)
+
+pred_energy = predict_energy(model, variability, efficiency)
+st.write(f"Predicted Energy Consumption: **{pred_energy:.2f} units**")
