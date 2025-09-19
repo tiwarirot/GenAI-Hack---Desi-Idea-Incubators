@@ -33,6 +33,18 @@ st.markdown("""
         box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         margin-bottom: 20px;
     }
+    .impact-card {
+        background-color: #EAF6FF;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+    }
+    .impact-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #003366;
+    }
     .kpi-value {
         font-size: 24px;
         font-weight: bold;
@@ -152,6 +164,26 @@ st.markdown(f"<div class='section-card'><b>Top Action (Predicted)</b><br>{pred}<
 st.success("💡 Scenario Simulator: Adjust wet feed spike + optimize RDF fuel mix → Lower emissions")
 
 # --------------------------
+# Predicted Impact Section
+# --------------------------
+st.subheader("📊 Predicted Impact of AI Optimization")
+
+imp1, imp2 = st.columns(2)
+with imp1:
+    st.markdown("<div class='impact-card'><b>Energy Reduction</b><br><span class='impact-value'>8–12%</span></div>", unsafe_allow_html=True)
+    st.progress(0.12)  
+
+    st.markdown("<div class='impact-card'><b>CO₂ Footprint Reduction</b><br><span class='impact-value'>10–15%</span></div>", unsafe_allow_html=True)
+    st.progress(0.15)  
+
+with imp2:
+    st.markdown("<div class='impact-card'><b>Alternative Fuel Usage</b><br><span class='impact-value'>+20%</span></div>", unsafe_allow_html=True)
+    st.progress(0.20)  
+
+    st.markdown("<div class='impact-card'><b>Production Stability</b><br><span class='impact-value'>5–7%</span></div>", unsafe_allow_html=True)
+    st.progress(0.07)  
+
+# --------------------------
 # Alerts & Controls
 # --------------------------
 st.subheader("Alerts & Events")
@@ -165,7 +197,7 @@ with c2:
     st.markdown("<div class='section-card'><h4>Quick Controls</h4><p>Auto-mode threshold: Confidence ≥ 85%<br>Safety limits: Active ✅</p></div>", unsafe_allow_html=True)
 
 # --------------------------
-# Predictive Slider Demo (from your first prototype)
+# Predictive Slider Demo
 # --------------------------
 st.subheader("🔮 Predict Energy Consumption")
 variability = st.slider("Raw Material Variability", 0.05, 0.2, 0.12)
