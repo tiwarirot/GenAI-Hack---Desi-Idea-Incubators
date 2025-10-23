@@ -6,8 +6,8 @@ try:
 except Exception:
     lgb = None
 
-from .data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
-from .gcp_utils import upload_to_gcs, register_model_vertex
+from data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
+from gcp_utils import upload_to_gcs, register_model_vertex
 
 MODELDIR = os.path.join(os.path.dirname(__file__), '..', 'models')
 os.makedirs(MODELDIR, exist_ok=True)
