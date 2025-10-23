@@ -60,7 +60,8 @@ def draw_line_chart(df, x_col, y_col, title=None, height=150):
         alt.Chart(df)
         .mark_line(point=False)
         .encode(x=alt.X(x_col, axis=alt.Axis(labelAngle=0)), y=alt.Y(y_col))
-        .properties(height=height, width=None, title=title)
+        .properties(height=height, width=600
+                    , title=title)
         .interactive()
     )
     st.altair_chart(chart, use_container_width=True)
