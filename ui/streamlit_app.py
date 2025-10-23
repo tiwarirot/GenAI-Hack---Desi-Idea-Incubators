@@ -4,10 +4,10 @@ repo_root = Path(__file__).parents[1].resolve()
 import sys
 sys.path.append(str(repo_root / 'src'))
 
-from data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
-from trainers import train_raw_grinding, train_clinker, train_quality, train_altfuel, train_cross, upload_and_register
-from ingest_simulator import write_all as ingest_write_all
-from gcp_utils import write_config_to_bq, read_config_from_bq
+from src.data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
+from src.trainers import train_raw_grinding, train_clinker, train_quality, train_altfuel, train_cross, upload_and_register
+from src.ingest_simulator import write_all as ingest_write_all
+from src.gcp_utils import write_config_to_bq, read_config_from_bq
 
 st.set_page_config(layout='wide', page_title='GenAI Cement - Final Streamlit')
 st.title('GenAI Cement — Operator Dashboard')
