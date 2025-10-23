@@ -1,5 +1,5 @@
 import os, time, json
-from .data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
+from data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
 
 OUT = os.path.join(os.path.dirname(__file__), '..', 'data')
 os.makedirs(OUT, exist_ok=True)
