@@ -468,4 +468,4 @@ if menu == "Train":
             st.error("Register failed: " + str(ex))
 
 st.markdown("---")
-st.caption("GenAI Cement Demo")
+#st.caption("GenAI Cement Demo")
