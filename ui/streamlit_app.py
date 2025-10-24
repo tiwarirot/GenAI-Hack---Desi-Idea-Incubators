@@ -197,7 +197,7 @@ if menu == "Overview":
                              trendline="ols", title="Variability vs Grinding Efficiency",
                              hover_data=df_rg.columns)
             fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10))
-            st.plotly_chart(fig, use_container_width=False)
+            st.plotly_chart(fig, use_container_width=True)
 
     with right:
         st.subheader("Kiln & Clinker Overview")
@@ -219,7 +219,7 @@ if menu == "Overview":
         st.subheader("Utilities & Fuel")
         if df_cross is not None:
             if "fuel_calorific" in df_cross.columns:
-                draw_plotly_timechart(df_cross.reset_index().rename(columns={"index":"t"}), "t", "fuel_calorific", title="Fuel Calorific", height=200)
+                draw_plotly_timechart(df_cross.reset_index().rename(columns={"index":"t"}), "t", "fuel_calorific", title="Fuel Calorific", height=200, width=500)
             if "predicted_energy" in df_cross.columns:
                 st.metric("Predicted Energy (last)", f"{df_cross['predicted_energy'].iloc[-1]:.2f} kWh/t")
         else:
