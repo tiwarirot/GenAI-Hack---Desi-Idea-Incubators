@@ -11,3 +11,4 @@ apache-beam[gcp]
 lightgbm
 torch
 plotly
+statsmodels
