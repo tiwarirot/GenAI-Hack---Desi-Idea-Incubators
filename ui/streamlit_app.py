@@ -1,4 +1,9 @@
 # ui/streamlit_app.py
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 import sys
 import os
 from pathlib import Path
@@ -23,11 +28,6 @@ from src.trainers import (
 from src.ingest_simulator import write_all as ingest_write_all
 from src.gcp_utils import write_config_to_bq, read_config_from_bq
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 
 st.set_page_config(
     layout="wide",
