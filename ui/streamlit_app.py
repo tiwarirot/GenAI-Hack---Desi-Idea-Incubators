@@ -197,7 +197,7 @@ if menu == "Overview":
                              trendline="ols", title="Variability vs Grinding Efficiency",
                              hover_data=df_rg.columns)
             fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=False)
 
     with right:
         st.subheader("Kiln & Clinker Overview")
