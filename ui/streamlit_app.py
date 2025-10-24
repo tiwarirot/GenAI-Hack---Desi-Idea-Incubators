@@ -1,26 +1,21 @@
 # ui/streamlit_app.py
-"""
-GenAI Cement — Streamlit UI (Plotly visuals + compact CSS theme)
-
-Drop this file into ui/ and restart your Streamlit app.
-Requires src/*.py modules present in the repo root /src folder.
-"""
-
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 import sys
 import os
 from pathlib import Path
 import time
 import joblib
 
-# -------------------------------------------------------------------
 # Ensure repo root is on sys.path so sibling modules in src/ can be imported.
-# This makes the app robust to different working directories on Streamlit Cloud.
-# -------------------------------------------------------------------
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-# Project module imports (assumes src/*.py exist and use top-level imports)
+# Import project modules (expect them at repo_root/src/*.py)
 from src.data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
 from src.trainers import (
     train_raw_grinding,
@@ -33,72 +28,14 @@ from src.trainers import (
 from src.ingest_simulator import write_all as ingest_write_all
 from src.gcp_utils import write_config_to_bq, read_config_from_bq
 
-# Third-party libs
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
 
-# -------------------------------------------------------------------
-# Page config
-# -------------------------------------------------------------------
 st.set_page_config(
     layout="wide",
-    page_title="GenAI Cement — Operator Dashboard",
+    page_title="GenAI Cement - Operator Dashboard",
     initial_sidebar_state="expanded",
 )
 
-# -------------------------------------------------------------------
-# Compact CSS — tighter spacing, card-like panels, accent color
-# -------------------------------------------------------------------
-COMPACT_CSS = """
-<style>
-/* Page background & font adjustments */
-body {
-    background-color: #f7fafc;
-}
-
-/* Accent color for headings & highlights */
-.css-1d391kg { color: #0b6efd; } /* Streamlit internal class can vary; used for some heading accents */
-
-/* Tighter spacing for Streamlit elements */
-.css-1v3fvcr { padding-top: 4px; padding-bottom: 4px; } 
-.reportview-container .main .block-container{
-    padding-top: 8px;
-    padding-right: 18px;
-    padding-left: 18px;
-    padding-bottom: 8px;
-}
-
-/* Card-like panels for sections */
-.panel-card {
-    background: white;
-    border-radius: 8px;
-    padding: 12px 14px;
-    box-shadow: 0 1px 6px rgba(16,24,40,0.06);
-    margin-bottom: 12px;
-}
-
-/* Metric tweaks */
-.stMetricLabel, .stMetricValue {
-    line-height: 1.1;
-}
-
-/* Smaller captions */
-.small-caption { font-size: 12px; color: #6b7280; }
-
-/* Make plotly charts have less vertical padding inside container */
-[data-testid="stPlotlyChart"] > div {
-    padding: 4px 0px;
-}
-</style>
-"""
-st.markdown(COMPACT_CSS, unsafe_allow_html=True)
-
-# -------------------------------------------------------------------
-# Paths
-# -------------------------------------------------------------------
+# ---------- Paths ----------
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "models")
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -110,14 +47,13 @@ def load_csv(name):
         return pd.read_csv(p)
     return None
 
-# -------------------------------------------------------------------
-# Plotly helpers (no statsmodels / trendline dependency)
-# -------------------------------------------------------------------
+# ---------- Plotly helpers ----------
 def choose_chart_type(column_name):
+    """Return chart type based on heuristics for a metric name."""
     n = column_name.lower()
-    if any(k in n for k in ["temp", "kiln", "feed", "rate", "blaine", "blain", "calorific"]):
+    if any(k in n for k in ["temp", "temperature", "kiln", "feed", "rate", "blain", "blaine", "tsr", "calorific"]):
         return "line"
-    if any(k in n for k in ["variability", "efficiency", "predicted", "energy", "co2", "tsr"]):
+    if any(k in n for k in ["variability", "efficiency", "predicted", "energy", "co2"]):
         return "area"
     if any(k in n for k in ["count", "events", "off_spec", "alerts"]):
         return "bar"
@@ -125,9 +61,12 @@ def choose_chart_type(column_name):
 
 def draw_plotly_timechart(df, x_col, y_col, title=None, height=320):
     if df is None or x_col not in df.columns or y_col not in df.columns:
-        st.info("No data for chart.")
+        st.info("No data available for chart.")
         return
     chart_type = choose_chart_type(y_col)
+    # If x isn't a datetime, try to coerce index or numeric time
+    x_vals = df[x_col]
+    y_vals = df[y_col]
     if chart_type == "line":
         fig = px.line(df, x=x_col, y=y_col, title=title)
         fig.update_traces(mode="lines+markers", marker=dict(size=6))
@@ -137,61 +76,49 @@ def draw_plotly_timechart(df, x_col, y_col, title=None, height=320):
         fig = px.bar(df, x=x_col, y=y_col, title=title)
     else:
         fig = px.line(df, x=x_col, y=y_col, title=title)
-    fig.update_layout(height=height, margin=dict(l=12, r=12, t=36, b=12), template="plotly_white")
+
+    fig.update_layout(height=height, margin=dict(l=24, r=12, t=40, b=24))
     st.plotly_chart(fig, use_container_width=True)
 
-def mini_sparkline(df, y_col, height=70):
+def mini_sparkline(df, y_col, title=None):
+    """Small sparkline for a KPI card."""
     if df is None or y_col not in df.columns:
+        st.write("")  # empty placeholder
         return
-    vals = df[y_col].tail(30).values
-    fig = go.Figure(data=[go.Scatter(y=vals, mode="lines", line=dict(width=2))])
-    fig.update_layout(height=height, margin=dict(l=0, r=0, t=0, b=0),
-                      xaxis=dict(visible=False), yaxis=dict(visible=False), template="plotly_white")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(y=df[y_col].tail(30).values, mode="lines", line=dict(width=2)))
+    fig.update_layout(height=60, margin=dict(l=0, r=0, t=0, b=0), xaxis=dict(visible=False),
+                      yaxis=dict(visible=False))
     st.plotly_chart(fig, use_container_width=True)
 
-def gauge_metric(value, label, min_val=None, max_val=None):
-    if min_val is None or max_val is None:
-        # default range around value
-        min_val = 0 if value >= 0 else value*1.2
-        max_val = value * 1.4 if value != 0 else 100
+def gauge_metric(value, label, min_val=0, max_val=100):
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=float(value),
+        value=value,
         title={'text': label},
-        gauge={'axis': {'range': [min_val, max_val]}, 'bar': {'color': "#0b6efd"}},
+        gauge={'axis': {'range': [min_val, max_val]}, 'bar': {'color': "darkblue"}},
     ))
-    fig.update_layout(height=200, margin=dict(l=8, r=8, t=24, b=8), template="plotly_white")
+    fig.update_layout(height=220, margin=dict(l=10, r=10, t=30, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-def radar_chart(values, labels, title="Snapshot"):
-    fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=values, theta=labels, fill='toself', name=title))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False, height=360, template="plotly_white")
-    st.plotly_chart(fig, use_container_width=True)
-
-# -------------------------------------------------------------------
-# UI small components
-# -------------------------------------------------------------------
+# ---------- Small helper UI components ----------
 def show_kpi_cards(kpis):
+    """kpis: list of tuples (label, value, delta_optional, unit_optional)"""
     cols = st.columns(len(kpis))
     for c, (label, value, delta, unit) in zip(cols, kpis):
         with c:
             if delta is not None:
-                st.metric(label, f"{value}{unit}", delta=delta)
+                st.metric(label, f"{value}{unit or ''}", delta=delta)
             else:
-                st.metric(label, f"{value}{unit}")
+                st.metric(label, f"{value}{unit or ''}")
 
 def show_ai_recommendation(text, details=None):
-    st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
     st.markdown("### 🔮 AI Recommendations")
     st.success(text)
     if details:
         st.caption(details)
-    st.markdown("</div>", unsafe_allow_html=True)
 
-# -------------------------------------------------------------------
-# Sidebar
-# -------------------------------------------------------------------
+# ---------- Sidebar ----------
 st.sidebar.title("Navigation")
 menu = st.sidebar.radio(
     "Go to",
@@ -204,9 +131,7 @@ if st.sidebar.button("Regenerate synthetic CSVs (ingest)"):
     ingest_write_all()
     st.sidebar.success("Regenerated synthetic CSVs in `data/`")
 
-# -------------------------------------------------------------------
-# Overview page
-# -------------------------------------------------------------------
+# ---------- Overview ----------
 if menu == "Overview":
     st.title("GenAI Cement — Operator Dashboard")
     # Load data
@@ -216,104 +141,94 @@ if menu == "Overview":
     df_af = load_csv("altfuel.csv")
     df_cross = load_csv("cross.csv")
 
-    # Calculate KPIs (safe guards)
-    energy_intensity = round(df_cross["predicted_energy"].mean(), 2) if (df_cross is not None and "predicted_energy" in df_cross.columns) else 9.58
+    # Build KPI values (safe guards if missing)
+    energy_intensity = (
+        round(df_cross["predicted_energy"].mean(), 2) if (df_cross is not None and "predicted_energy" in df_cross.columns) else 9.58
+    )
     tsr = round(df_af["tsr"].mean(), 1) if (df_af is not None and "tsr" in df_af.columns) else 32
     off_spec = int(df_q.shape[0] * 0.02) if df_q is not None else 2
     co2 = round((df_cross["co2"].mean() if (df_cross is not None and "co2" in df_cross.columns) else 0.82), 2)
 
+    # KPI cards row
     kpis = [
         ("Energy Intensity", energy_intensity, "-0.4", " kWh/t"),
         ("Thermal Substitution Rate", tsr, None, " %"),
         ("Off-spec Events", off_spec, None, " /mo"),
         ("CO₂ Emissions", co2, "-0.1", " t/ton"),
     ]
-    st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
     show_kpi_cards(kpis)
-    st.markdown("</div>", unsafe_allow_html=True)
-
     st.markdown("---")
-    left, right = st.columns([2,1])
+
+    # Two-column layout with rich visuals
+    left, right = st.columns([2, 1])
 
     with left:
-        st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
         st.subheader("Raw Materials & Grinding")
         if df_rg is not None:
-            # Mini KPIs derived from df
+            # KPI mini cards derived from df_rg (guards for missing columns)
             mini_kpis = []
-            # handle possible column name variations
-            cols_lower = [c.lower() for c in df_rg.columns]
-            if "sio2" in cols_lower:
-                c = df_rg.columns[cols_lower.index("sio2")]
-                mini_kpis.append(("SiO₂ (avg)", round(df_rg[c].mean(), 2), None, " %"))
+            if "siO2" in df_rg.columns or "siO2" in [c.lower() for c in df_rg.columns]:
+                col_si = [c for c in df_rg.columns if c.lower() == "sio2"]
+                if col_si:
+                    mini_kpis.append(("SiO₂ (avg)", round(df_rg[col_si[0]].mean(), 2), None, " %"))
             if "moisture" in df_rg.columns:
                 mini_kpis.append(("Moisture (avg)", round(df_rg["moisture"].mean(), 2), None, " %"))
-            if "blaine" in cols_lower or "blain" in cols_lower:
-                if "blaine" in df_rg.columns:
-                    col_b = "blaine"
-                else:
-                    col_b = [c for c in df_rg.columns if c.lower() == "blain"][0]
-                mini_kpis.append(("Blaine (avg)", int(df_rg[col_b].mean()), None, ""))
+            if "blain" in df_rg.columns or "blaine" in df_rg.columns:
+                col_b = "blain" if "blain" in df_rg.columns else ("blaine" if "blaine" in df_rg.columns else None)
+                if col_b:
+                    mini_kpis.append(("Blaine (avg)", int(df_rg[col_b].mean()), None, ""))
 
             if mini_kpis:
-                show_kpi_cards(mini_kpis)
-
-            # time-series visuals (use index as time if no time column)
-            df_rg_t = df_rg.reset_index().rename(columns={"index":"t"})
-            if "raw_material_variability" in df_rg_t.columns:
-                draw_plotly_timechart(df_rg_t, "t", "raw_material_variability", title="Raw Material Variability")
-            if "grinding_efficiency" in df_rg_t.columns:
+                show_kpi_cards([(a,b,c,d) for (a,b,c,d) in mini_kpis])
+            # primary time-series: variability
+            if "raw_material_variability" in df_rg.columns:
+                # create an x column as index if not present
+                df_rg_t = df_rg.reset_index().rename(columns={"index":"t"})
+                draw_plotly_timechart(df_rg_t, "t", "raw_material_variability", title="Raw Material Variability", height=320)
+            if "grinding_efficiency" in df_rg.columns:
                 draw_plotly_timechart(df_rg_t, "t", "grinding_efficiency", title="Grinding Efficiency", height=260)
-
-            # scatter relationship
-            if {"raw_material_variability", "grinding_efficiency"}.issubset(set(df_rg.columns)):
-                fig = px.scatter(df_rg, x="raw_material_variability", y="grinding_efficiency",
-                                 title="Variability vs Grinding Efficiency", hover_data=df_rg.columns)
-                fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10), template="plotly_white")
-                st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No raw/grinding data — run ingestion (sidebar)")
-        st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
-        st.subheader("Grinding — Historic")
-        if df_rg is not None and "grinding_efficiency" in df_rg.columns:
-            mini_sparkline(df_rg, "grinding_efficiency", height=80)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("### Grinding — Relationship")
+        if df_rg is not None and {"raw_material_variability", "grinding_efficiency"}.issubset(set(df_rg.columns)):
+            # Scatter with color by grinding_efficiency
+            fig = px.scatter(df_rg, x="raw_material_variability", y="grinding_efficiency",
+                             trendline="ols", title="Variability vs Grinding Efficiency",
+                             hover_data=df_rg.columns)
+            fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10))
+            st.plotly_chart(fig, use_container_width=True)
 
     with right:
-        st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
-        st.subheader("Kiln & Clinker")
+        st.subheader("Kiln & Clinker Overview")
         if df_cl is not None:
+            # show gauges or sparkline KPIs
             if "kiln_temp" in df_cl.columns:
                 gauge_metric(df_cl["kiln_temp"].iloc[-1], "Kiln Temp (°C)", min_val=1200, max_val=1600)
             if "oxygen_level" in df_cl.columns:
                 st.metric("Oxygen Level", f"{df_cl['oxygen_level'].iloc[-1]} %")
             if "feed_rate" in df_cl.columns:
                 st.metric("Feed Rate", f"{df_cl['feed_rate'].iloc[-1]} tph")
+            # mini sparkline for last 30 values (if present)
             if "kiln_temp" in df_cl.columns:
-                mini_sparkline(df_cl, "kiln_temp", height=60)
+                mini_sparkline(df_cl, "kiln_temp", title="Kiln Temp (last 30)")
         else:
             st.info("No clinker data")
-        st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
+        st.markdown("---")
         st.subheader("Utilities & Fuel")
         if df_cross is not None:
             if "fuel_calorific" in df_cross.columns:
-                df_cross_t = df_cross.reset_index().rename(columns={"index":"t"})
-                draw_plotly_timechart(df_cross_t, "t", "fuel_calorific", title="Fuel Calorific", height=200)
+                draw_plotly_timechart(df_cross.reset_index().rename(columns={"index":"t"}), "t", "fuel_calorific", title="Fuel Calorific", height=200)
             if "predicted_energy" in df_cross.columns:
                 st.metric("Predicted Energy (last)", f"{df_cross['predicted_energy'].iloc[-1]:.2f} kWh/t")
         else:
             st.write("Utilities metrics not available")
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     show_ai_recommendation("Optimize grinding load distribution (Predicted Energy: ~9.6 kWh/t)",
                             details="Suggested scenario: adjust mill feed profile + increase grinding efficiency by 5%.")
 
-    st.markdown("---")
     st.subheader("Predicted Impact from AI Optimization")
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -344,15 +259,14 @@ if menu == "Overview":
     st.write("- 10:12 — Operator input")
     st.write("- 10:18 — Change applied")
 
-# -------------------------------------------------------------------
-# Raw & Grinding page
-# -------------------------------------------------------------------
+# ---------- Raw & Grinding page ----------
 if menu == "Raw & Grinding":
     st.header("Optimize Raw Materials & Grinding (Interactive)")
     df = load_csv("raw_grinding.csv")
     if df is None:
         st.warning("No data found; run ingestion from Overview.")
     else:
+        # Controls
         left, right = st.columns([2, 1])
         with left:
             v = st.slider("Raw Material Variability", 0.0, 0.6, 0.2, step=0.01)
@@ -373,18 +287,17 @@ if menu == "Raw & Grinding":
             if st.button("Trigger Vertex Batch (placeholder)"):
                 st.info("This would submit a Vertex AI batch prediction job (placeholder).")
 
-        # Scatter + rolling mean
+        # Visuals - scatter and trendline
         if {"raw_material_variability", "grinding_efficiency"}.issubset(set(df.columns)):
             fig = px.scatter(df, x="raw_material_variability", y="grinding_efficiency",
-                             title="Variability vs Grinding Efficiency", hover_data=df.columns)
-            fig.update_layout(height=420, margin=dict(l=10, r=10, t=40, b=10), template="plotly_white")
+                             trendline="ols", title="Variability vs Grinding Efficiency",
+                             hover_data=df.columns)
+            fig.update_layout(height=420, margin=dict(l=10, r=10, t=40, b=10))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Insufficient columns for historic visual.")
 
-# -------------------------------------------------------------------
-# Clinker page
-# -------------------------------------------------------------------
+# ---------- Clinker page ----------
 if menu == "Clinker":
     st.header("Balance Clinkerization Parameters")
     df = load_csv("clinker.csv")
@@ -403,18 +316,17 @@ if menu == "Clinker":
                     m = joblib.load(path)
                     pred = m.predict([[temp, feed, oxy]])[0]
                     st.success(f"Predicted energy use: {pred:.2f}")
+            # Visualize kiln temp trace if available
             if "kiln_temp" in df.columns:
-                df_t = df.reset_index().rename(columns={"index":"t"})
-                draw_plotly_timechart(df_t, "t", "kiln_temp", "Kiln Temp (°C)", height=360)
+                draw_plotly_timechart(df.reset_index().rename(columns={"index":"t"}), "t", "kiln_temp", "Kiln Temp (°C)", height=360)
         with col2:
+            # small KPI cards
             if "oxygen_level" in df.columns:
                 st.metric("Oxygen Level (last)", f"{df['oxygen_level'].iloc[-1]} %")
             if "feed_rate" in df.columns:
                 st.metric("Feed Rate (last)", f"{df['feed_rate'].iloc[-1]} tph")
 
-# -------------------------------------------------------------------
-# Quality page
-# -------------------------------------------------------------------
+# ---------- Quality page ----------
 if menu == "Quality":
     st.header("Ensure Quality Consistency")
     df = load_csv("quality.csv")
@@ -431,22 +343,14 @@ if menu == "Quality":
                 pred = m.predict([[si, moist, bl]])[0]
                 st.success(f"Predicted compressive strength: {pred:.2f} MPa")
 
-        # Distribution of Blaine if available
-        col_b = None
-        if df is not None:
-            cols_lower = [c.lower() for c in df.columns]
-            if "blaine" in cols_lower:
-                col_b = df.columns[cols_lower.index("blaine")]
-            elif "blain" in cols_lower:
-                col_b = df.columns[cols_lower.index("blain")]
-        if col_b:
+        # Visual: distribution of blaine or strength if present
+        if "blaine" in df.columns or "blain" in df.columns:
+            col_b = "blaine" if "blaine" in df.columns else "blain"
             fig = px.histogram(df, x=col_b, nbins=30, title="Blaine Distribution")
-            fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10), template="plotly_white")
+            fig.update_layout(height=360, margin=dict(l=10, r=10, t=40, b=10))
             st.plotly_chart(fig, use_container_width=True)
 
-# -------------------------------------------------------------------
-# Alt Fuel page
-# -------------------------------------------------------------------
+# ---------- Alt Fuel page ----------
 if menu == "Alt Fuel":
     st.header("Maximize Alternative Fuel Use (TSR)")
     df = load_csv("altfuel.csv")
@@ -463,17 +367,16 @@ if menu == "Alt Fuel":
                 pred = m.predict([[fuel, rfd, tsr]])[0]
                 st.success(f"Predicted energy consumption: {pred:.2f}")
 
+        # Visual: stacked area showing fuel calorific and tsr if available in df
         if df is not None and {"fuel_calorific", "tsr"}.issubset(set(df.columns)):
             d = df.reset_index().rename(columns={"index":"t"})
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=d["t"], y=d["fuel_calorific"], fill='tozeroy', name='Fuel Calorific'))
             fig.add_trace(go.Scatter(x=d["t"], y=d["tsr"], fill='tozeroy', name='TSR'))
-            fig.update_layout(title="Fuel Calorific & TSR", height=360, margin=dict(l=10,r=10,t=40,b=10), template="plotly_white")
+            fig.update_layout(title="Fuel Calorific & TSR", height=360, margin=dict(l=10,r=10,t=40,b=10))
             st.plotly_chart(fig, use_container_width=True)
 
-# -------------------------------------------------------------------
-# Cross page
-# -------------------------------------------------------------------
+# ---------- Cross page ----------
 if menu == "Cross":
     st.header("Strategic Cross-Process Optimization")
     df = load_csv("cross.csv")
@@ -502,6 +405,7 @@ if menu == "Cross":
                 pred = m.predict([X])[0]
                 st.success(f"Cross predicted energy: {pred:.2f}")
 
+        # Visual: radar-like spider chart for last row if columns exist
         last = None
         try:
             last = df.tail(1)
@@ -515,11 +419,12 @@ if menu == "Cross":
                     metrics.append(float(last[col].values[0]))
                     labels.append(col.replace("_", " ").title())
             if metrics:
-                radar_chart(metrics, labels, title="Last Snapshot")
+                fig = go.Figure()
+                fig.add_trace(go.Scatterpolar(r=metrics, theta=labels, fill='toself', name='Last snapshot'))
+                fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False, height=420)
+                st.plotly_chart(fig, use_container_width=True)
 
-# -------------------------------------------------------------------
-# Config page
-# -------------------------------------------------------------------
+# ---------- Config page ----------
 if menu == "Config":
     st.header("Edit and persist configuration (BigQuery)")
     st.write("Requires GCP ADC credentials and dataset.table config exists.")
@@ -536,14 +441,13 @@ if menu == "Config":
         try:
             dfc = read_config_from_bq(None)
             st.write("Fetched configs")
+            # show a compact list instead of dataframe
             for idx, row in dfc.iterrows():
                 st.write(f"- **{row['process']}**: {row['param_name']} = {row['param_value']}")
         except Exception as ex:
             st.error("Failed: " + str(ex))
 
-# -------------------------------------------------------------------
-# Train page
-# -------------------------------------------------------------------
+# ---------- Train page ----------
 if menu == "Train":
     st.header("Train and optionally register model")
     if st.button("Train All Local Models"):
@@ -563,6 +467,5 @@ if menu == "Train":
         except Exception as ex:
             st.error("Register failed: " + str(ex))
 
-# Footer
 st.markdown("---")
-#st.caption("GenAI Cement demo — Streamlit UI with Plotly visuals. For production, wire in real telemetry and secure GCP credentials.")
+#st.caption("GenAI Cement Demo")
