@@ -219,7 +219,7 @@ if menu == "Overview":
         st.subheader("Utilities & Fuel")
         if df_cross is not None:
             if "fuel_calorific" in df_cross.columns:
-                draw_plotly_timechart(df_cross.reset_index().rename(columns={"index":"t"}), "t", "fuel_calorific", title="Fuel Calorific", height=200, width=500)
+                draw_plotly_timechart(df_cross.reset_index().rename(columns={"index":"t"}), "t", "fuel_calorific", title="Fuel Calorific", height=200)
             if "predicted_energy" in df_cross.columns:
                 st.metric("Predicted Energy (last)", f"{df_cross['predicted_energy'].iloc[-1]:.2f} kWh/t")
         else:
