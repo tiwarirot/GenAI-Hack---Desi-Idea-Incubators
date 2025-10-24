@@ -133,7 +133,7 @@ if st.sidebar.button("Regenerate synthetic CSVs (ingest)"):
 
 # ---------- Overview ----------
 if menu == "Overview":
-    st.title("GenAI Cement — Operator Dashboard (Interactive)")
+    st.title("GenAI Cement — Operator Dashboard")
     # Load data
     df_rg = load_csv("raw_grinding.csv")
     df_cl = load_csv("clinker.csv")
