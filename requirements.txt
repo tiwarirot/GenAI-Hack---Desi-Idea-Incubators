@@ -10,4 +10,4 @@ google-cloud-aiplatform
 apache-beam[gcp]
 lightgbm
 torch
-plotly
+plotly>=5.18.0
