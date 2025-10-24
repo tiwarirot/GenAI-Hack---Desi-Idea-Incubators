@@ -468,4 +468,4 @@ if menu == "Train":
             st.error("Register failed: " + str(ex))
 
 st.markdown("---")
-st.caption("GenAI Cement demo — Streamlit UI with Plotly visuals. For production, wire in real telemetry and secure GCP credentials.")
+st.caption("GenAI Cement Demo")
