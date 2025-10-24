@@ -12,8 +12,8 @@ if ROOT not in sys.path:
 
 # NOTE: these imports expect the modules to be at repo_root/src/*.py
 # and that those files use top-level imports (no leading dot).
-from data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
-from trainers import (
+from src.data_generator import gen_raw_grinding, gen_clinker, gen_quality, gen_altfuel, gen_cross
+from src.trainers import (
     train_raw_grinding,
     train_clinker,
     train_quality,
@@ -21,8 +21,8 @@ from trainers import (
     train_cross,
     upload_and_register,
 )
-from ingest_simulator import write_all as ingest_write_all
-from gcp_utils import write_config_to_bq, read_config_from_bq
+from src.ingest_simulator import write_all as ingest_write_all
+from src.gcp_utils import write_config_to_bq, read_config_from_bq
 
 import streamlit as st
 import pandas as pd
