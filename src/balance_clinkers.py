@@ -13,7 +13,7 @@ import tensorflow as tf
 PROJECT_ID = "my-project-48035-282812"
 BUCKET = "clinker_params"
 TOPIC_ID = "clinker-sensor-stream"
-REGION = "us-central1"
+REGION = "asia-south1"
 MODEL_DISPLAY_NAME = "clinkerization-tft-model"
 
 # -----------------------------
@@ -129,3 +129,4 @@ if __name__ == "__main__":
 
     # Step 4: run a prediction & rationale
     run_prediction()
+
