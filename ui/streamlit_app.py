@@ -127,7 +127,7 @@ menu = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 st.sidebar.write("Developer controls")
-if st.sidebar.button("Regenerate synthetic CSVs (ingest)"):
+if st.sidebar.button("Regenerate synthetic CSVs"):
     ingest_write_all()
     st.sidebar.success("Regenerated synthetic CSVs in `data/`")
 
@@ -277,7 +277,7 @@ if menu == "Raw & Grinding":
 
         col_pred1, col_pred2 = st.columns(2)
         with col_pred1:
-            if st.button("Predict (local)"):
+            if st.button("Predict"):
                 with st.spinner("Training small local model and predicting..."):
                     path = train_raw_grinding(n=300)
                     m = joblib.load(path)
@@ -310,7 +310,7 @@ if menu == "Clinker":
 
         col1, col2 = st.columns([2, 1])
         with col1:
-            if st.button("Predict (local)"):
+            if st.button("Predict"):
                 with st.spinner("Training local clinker model..."):
                     path = train_clinker(n=300)
                     m = joblib.load(path)
@@ -336,7 +336,7 @@ if menu == "Quality":
         si = st.number_input("SiO2 %", 10.0, 30.0, 21.0)
         moist = st.number_input("Moisture %", 0.1, 10.0, 4.0)
         bl = st.number_input("Blaine", 200, 500, 330)
-        if st.button("Predict (local)"):
+        if st.button("Predict"):
             with st.spinner("Training quality model..."):
                 path = train_quality(n=300)
                 m = joblib.load(path)
@@ -360,7 +360,7 @@ if menu == "Alt Fuel":
         fuel = st.number_input("Fuel Calorific (kcal/kg)", 1000, 6000, 3500)
         rfd = st.slider("RDF share", 0.0, 0.8, 0.3, step=0.01)
         tsr = st.slider("Current TSR %", 0.0, 60.0, 32.0)
-        if st.button("Predict (local)"):
+        if st.button("Predict"):
             with st.spinner("Training altfuel model..."):
                 path = train_altfuel(n=300)
                 m = joblib.load(path)
@@ -383,7 +383,7 @@ if menu == "Cross":
     if df is None:
         st.warning("No data found; run ingestion from Overview.")
     else:
-        if st.button("Predict (local)"):
+        if st.button("Predict"):
             with st.spinner("Training cross model..."):
                 path = train_cross(n=300)
                 m = joblib.load(path)
