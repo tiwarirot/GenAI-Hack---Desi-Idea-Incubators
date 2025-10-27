@@ -17,7 +17,7 @@ PROJECT_ID = "my-project-48035-282812"
 BUCKET = "optimize_raw_materials"
 BQ_DATASET = "cement_ops"
 BQ_TABLE = "raw_materials"
-REGION = "us-central1"
+REGION = "asia-south1"
 FEATURE_STORE_ID = "cement_features"
 MODEL_DISPLAY_NAME = "cement-tft-model"
 API_IMAGE = f"gcr.io/{PROJECT_ID}/cement-optimizer-api"
@@ -185,3 +185,4 @@ if __name__ == "__main__":
     thread = Thread(target=run_flask, daemon=True)
     thread.start()
     run_streamlit()
+
