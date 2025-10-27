@@ -459,7 +459,7 @@ if menu == "Train":
             train_cross()
             st.success("All local models trained and saved to /models")
 
-    if st.button("Upload & register Raw Grinding model to Vertex (requires GCP)"):
+    if st.button("Upload & register Raw Grinding model to Vertex (optional)"):
         try:
             path = os.path.join(os.path.dirname(__file__), "..", "models", "raw_grinding.joblib")
             res = upload_and_register(path, "raw-grinding-demo")
