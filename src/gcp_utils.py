@@ -5,8 +5,8 @@
 
 import os, time
 
-PROJECT = os.environ.get('GCP_PROJECT', 'your-gcp-project')
-BUCKET = os.environ.get('GCS_BUCKET', 'your-data-bucket')
+PROJECT = os.environ.get('GCP_PROJECT', 'my-project-48035-282812')
+BUCKET = os.environ.get('GCS_BUCKET', 'genai-bucket')
 REGION = os.environ.get('GCP_REGION', 'asia-south1')
 BQ_DATASET = os.environ.get('BQ_DATASET', 'cement_ops')
 
